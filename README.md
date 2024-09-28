@@ -2,7 +2,7 @@
 HEDTU - ἐκτεταμένη διάταξις τοῦ Unicode
 
 The extended unicode keyboard layout
-##
+![Layout preview](https://github.com/Epigeos-com/HEDTU/blob/main/preview.png)
 The legacy standard lacks important symbols, mainly math-related ones
 
 It also has some pretty weird allocation of certain special characters, such as ?!/\
