@@ -117,8 +117,39 @@ int main(int argc, char *argv[]) {
         for (int i = 18; i < 25; i++){
             keyListStatic[i + 20] = replace(replace(unicodeKeyTemplateDouble, "{XXXX}", toReplace[i]), "{YYYY}", toReplaceShift[i]);
         }
-    }else{ // language-point
-        cout << lang + " is not supported. Make sure you're entering the ISO639-3 code, not ISO639-1. Available options: eng, ell."; // language-point
+    }else if (lang == "isv"){
+        cout << "Use isv-l for latin or isv-c for cyrillic.";
+        return -1;
+    }else if (lang == "isv-l"){
+        languageName = "Medžuslovjansky";
+        keyListDynamic[17] = ", " + replace(replace(unicodeKeyTemplateDouble, "{XXXX}", "011B"), "{YYYY}", "011A"); // E
+        keyListDynamic[28] = ", " + replace(replace(unicodeKeyTemplateDouble, "{XXXX}", "0161"), "{YYYY}", "0160"); // S
+        keyListDynamic[38] = ", " + replace(replace(unicodeKeyTemplateDouble, "{XXXX}", "017E"), "{YYYY}", "017D"); // Z
+        keyListDynamic[40] = ", " + replace(replace(unicodeKeyTemplateDouble, "{XXXX}", "010D"), "{YYYY}", "010C"); // C
+    }else if (lang == "isv-c"){
+        languageName = "Меджусловјанскы";
+        string toReplace[29] = {
+            "0459", "045A", "0435", "0440", "0442", "0437", "0443", "0438", "043E", "043F", "0448",
+            "0430", "0441", "0434", "0444", "0433", "0445", "0458", "043A", "043B", "0447", "044B",
+            "0436", "0454", "0446", "0432", "0431", "043D", "043C"
+        };
+        string toReplaceShift[29] = {
+            "0409", "040A", "0415", "0420", "0422", "0417", "0423", "0418", "041E", "041F", "0428",
+            "0410", "0421", "0414", "0424", "0413", "0425", "0408", "041A", "041B", "0427", "042B",
+            "0416", "0404", "0426", "0412", "0411", "041D", "041C"
+        };
+        keyListStatic[15] = replace(unicodeKeyTemplate, "{XXXX}", "0301");
+        for (int i = 0; i < 11; i++){
+            keyListStatic[i + 15] = replace(replace(unicodeKeyTemplateDouble, "{XXXX}", toReplace[i]), "{YYYY}", toReplaceShift[i]);
+        }
+        for (int i = 11; i < 22; i++){
+            keyListStatic[i + 16] = replace(replace(unicodeKeyTemplateDouble, "{XXXX}", toReplace[i]), "{YYYY}", toReplaceShift[i]);
+        }
+        for (int i = 22; i < 29; i++){
+            keyListStatic[i + 16] = replace(replace(unicodeKeyTemplateDouble, "{XXXX}", toReplace[i]), "{YYYY}", toReplaceShift[i]);
+        }
+    }else{ // language-point // all languages, including Cyrillic ones should use the QWERTY layout by default as other layouts are implemented as based on the QWERTY one, you can simply write it in your preferred format and run the swaps in reverse order
+        cout << lang + " is not supported. Make sure you're entering the ISO639-3 code, not ISO639-1. Available options: eng, ell, isv."; // language-point
         return -1;
     }
 
@@ -182,16 +213,41 @@ int main(int argc, char *argv[]) {
         swap(keyListDynamic[15], keyListDynamic[37]);
         swap(keyListDynamic[14], keyListDynamic[26]);
         swap(keyListDynamic[13], keyListDynamic[25]);
+    }else if (base == "JCUKEN"){
+        swap(keyListStatic[42], keyListStatic[44]);
+        swap(keyListStatic[41], keyListStatic[42]);
+        swap(keyListStatic[40], keyListStatic[16]);
+        swap(keyListStatic[39], keyListStatic[37]);
+        swap(keyListStatic[38], keyListStatic[39]);
+        swap(keyListStatic[36], keyListStatic[39]);
+        swap(keyListStatic[35], keyListStatic[42]);
+        swap(keyListStatic[34], keyListStatic[42]);
+        swap(keyListStatic[32], keyListStatic[42]);
+        swap(keyListStatic[31], keyListStatic[43]);
+        swap(keyListStatic[29], keyListStatic[35]);
+        swap(keyListStatic[28], keyListStatic[40]);
+        swap(keyListStatic[27], keyListStatic[30]);
+        swap(keyListStatic[25], keyListStatic[42]);
+        swap(keyListStatic[24], keyListStatic[31]);
+        swap(keyListStatic[23], keyListStatic[33]);
+        swap(keyListStatic[22], keyListStatic[42]);
+        swap(keyListStatic[21], keyListStatic[43]);
+        swap(keyListStatic[20], keyListStatic[24]);
+        swap(keyListStatic[19], keyListStatic[43]);
+        swap(keyListStatic[18], keyListStatic[32]);
+        swap(keyListStatic[17], keyListStatic[19]);
+
+        // language-point // Cyrillic languages will have this layout vary a bunch, rn it's implemented for isv, feel free to change the base to something more universal and use ifs to adapt it for other languages
     }else if (base != "QWERTY"){ // base-point // Using swap allows for use in any implemented format, so you should only use swap
-        cout << base + " is not supported. Available options: QWERTY, Dvorak."; // base-point
+        cout << base + " is not supported. Available options: QWERTY, Dvorak, JCUKEN"; // base-point
         return -1;
     }
 
     string text = "";
     if (format == "xkb"){
-        text = "// HEDTU keyboard layout for English.\n"
+        text = "// HEDTU keyboard layout for " + languageName + ".\n"
         "// https://epigeos.com/ge/HEDTU\n"
-        "// Layout and software made by Kirki Walkowiak from epigeos.com\n\n"
+        "// Layout and software made by Kirka Walkowiak from epigeos.com\n\n"
 
         "default partial alphanumeric_keys\n"
         "xkb_symbols \"basic\" {\n\n"
@@ -299,7 +355,7 @@ int main(int argc, char *argv[]) {
 
                 cout << "The layout should now be available in your xkb settings.\n";
             }else{
-                cout << "Remove the layout from your used layouts and add it again in xkb settings to apply changes.\n";
+                cout << "Readd the layout to your used layouts in xkb settings to apply changes.\n";
             }
         }else{
             cout << "/usr/share/X11/xkb not found.\n";
