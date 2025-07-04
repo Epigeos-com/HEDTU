@@ -6,7 +6,7 @@ The standard layout lacks important symbols, particularly math-related ones and 
 ![Layout preview](https://github.com/Epigeos-com/HEDTU/blob/main/preview.png)  
 
 # Use
-`sudo ./HEDTU <lang> <layout> <format>`
+`sudo ./HEDTU <lang> <layout> <format>`  
 Currently available languages: eng, ell, isv, pol  
 Layouts: QWERTY, Dvorak, JCUKEN  
 Formats: xkb  
