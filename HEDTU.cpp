@@ -52,14 +52,11 @@ int main(int argc, char *argv[]) {
     if (argc > 2) base = strtoupper(argv[2]);
     if (argc > 3) format = strtolower(argv[3]);
     for (int i = 0; i < argc; i++) {
-        if (strtolower(argv[i]) == "--from-each-according-to-their-ability-to-each-according-to-their-needs") // easter-egg
-        {
+        if (strtolower(argv[i]) == "--from-each-according-to-their-ability-to-each-according-to-their-needs"){ // easter-egg
             specialDegree = true;
-        }else if (strtolower(argv[i]) == "--widzisz-mnie") // easter-egg
-        {
+        }else if (strtolower(argv[i]) == "--widzisz-mnie"){ // easter-egg
             specialSpace = true;
-        }else if (strtolower(argv[i]) == "--use-left-alt")
-        {
+        }else if (strtolower(argv[i]) == "--use-left-alt"){
             useLeftAlt = true;
         }
     }
@@ -67,7 +64,7 @@ int main(int argc, char *argv[]) {
     // Such splitting allows for easier addition of new bases, languages and formats, as they're separate, so you can e.g. add a format without recreating all the languages and bases
     string keyListStatic[48] = { // Base characters and ones that stay with base characters regardless of language
         "degree", "underscore, bar", "space, space",
-        "1, question, exclam", "2, at", "3, numbersign, cent", "4, dollar, EuroSign", "5, percent, permille", "6, asciicircum, asciitilde", "7, ampersand, grave", "8, asterisk", "9, parenleft, U2208, U2209", "0, parenright, U2282, U2284", "minus, plus, U2219, U2A2F", "equal, notequal, U2248, U2249",
+        "1, question, exclam", "2, at", "3, numbersign", "4, dollar", "5, percent, permille", "6, asciicircum, asciitilde", "7, ampersand, grave", "8, asterisk, U2219, U2A2F", "9, parenleft, U2208, U2209", "0, parenright, U2282, U2284", "minus, plus, plusminus", "equal, notequal, U2248, U2249",
         "q, Q", "w, W", "e, E", "r, R", "t, T", "y, Y", "u, U", "i, I", "o, O", "p, P", "bracketleft, braceleft, U2264, U2270", "bracketright, braceright, U2265, U2271",
         "a, A", "s, S", "d, D", "f, F", "g, G", "h, H", "j, J", "k, K", "l, L", "semicolon, colon, U22BB", "apostrophe, quotedbl, U22BC, U22BD",
         "z, Z", "x, X", "c, C", "v, V", "b, B", "n, N", "m, M", "comma, less, U226E", "period, greater, U226F", "slash, backslash"
@@ -126,6 +123,16 @@ int main(int argc, char *argv[]) {
         keyListDynamic[28] = ", " + replace(replace(unicodeKeyTemplateDouble, "{XXXX}", "0161"), "{YYYY}", "0160"); // S
         keyListDynamic[38] = ", " + replace(replace(unicodeKeyTemplateDouble, "{XXXX}", "017E"), "{YYYY}", "017D"); // Z
         keyListDynamic[40] = ", " + replace(replace(unicodeKeyTemplateDouble, "{XXXX}", "010D"), "{YYYY}", "010C"); // C
+        // Etymological alphabet
+        keyListDynamic[15] = ", " + replace(unicodeKeyTemplate, "{XXXX}", "0301"); // Q => ◌́
+        keyListDynamic[16] = ", " + replace(replace(unicodeKeyTemplateDouble, "{XXXX}", "0119"), "{YYYY}", "0118"); // W => Ę
+        keyListDynamic[18] = ", " + replace(replace(unicodeKeyTemplateDouble, "{XXXX}", "0117"), "{YYYY}", "0116"); // R => Ė
+        keyListDynamic[21] = ", " + replace(replace(unicodeKeyTemplateDouble, "{XXXX}", "0173"), "{YYYY}", "0172"); // U
+        keyListDynamic[27] = ", " + replace(replace(unicodeKeyTemplateDouble, "{XXXX}", "00E5"), "{YYYY}", "00C5"); // A
+        keyListDynamic[23] = ", " + replace(replace(unicodeKeyTemplateDouble, "{XXXX}", "022F"), "{YYYY}", "022E"); // O
+        keyListDynamic[29] = ", " + replace(replace(unicodeKeyTemplateDouble, "{XXXX}", "0111"), "{YYYY}", "0110"); // D
+        keyListDynamic[39] = ", " + replace(replace(unicodeKeyTemplateDouble, "{XXXX}", "0107"), "{YYYY}", "0106"); // X => Ć
+
     }else if (lang == "isv-c"){
         languageName = "Меджусловјанскы";
         string toReplace[29] = {
@@ -148,8 +155,19 @@ int main(int argc, char *argv[]) {
         for (int i = 22; i < 29; i++){
             keyListStatic[i + 16] = replace(replace(unicodeKeyTemplateDouble, "{XXXX}", toReplace[i]), "{YYYY}", toReplaceShift[i]);
         }
+    }else if (lang == "pol"){
+        languageName = "Polski";
+        keyListDynamic[17] = ", " + replace(replace(unicodeKeyTemplateDouble, "{XXXX}", "0119"), "{YYYY}", "0118"); // E
+        keyListDynamic[23] = ", " + replace(replace(unicodeKeyTemplateDouble, "{XXXX}", "00F3"), "{YYYY}", "00D3"); // O
+        keyListDynamic[27] = ", " + replace(replace(unicodeKeyTemplateDouble, "{XXXX}", "0105"), "{YYYY}", "0104"); // A
+        keyListDynamic[28] = ", " + replace(replace(unicodeKeyTemplateDouble, "{XXXX}", "015B"), "{YYYY}", "015A"); // S
+        keyListDynamic[35] = ", " + replace(replace(unicodeKeyTemplateDouble, "{XXXX}", "0142"), "{YYYY}", "0141"); // L
+        keyListDynamic[38] = ", " + replace(replace(unicodeKeyTemplateDouble, "{XXXX}", "017C"), "{YYYY}", "017B"); // Z
+        keyListDynamic[39] = ", " + replace(replace(unicodeKeyTemplateDouble, "{XXXX}", "017A"), "{YYYY}", "0179"); // X
+        keyListDynamic[40] = ", " + replace(replace(unicodeKeyTemplateDouble, "{XXXX}", "0107"), "{YYYY}", "0106"); // C
+        keyListDynamic[43] = ", " + replace(replace(unicodeKeyTemplateDouble, "{XXXX}", "0144"), "{YYYY}", "0143"); // N
     }else{ // language-point // all languages, including Cyrillic ones should use the QWERTY layout by default as other layouts are implemented as based on the QWERTY one, you can simply write it in your preferred format and run the swaps in reverse order
-        cout << lang + " is not supported. Make sure you're entering the ISO639-3 code, not ISO639-1. Available options: eng, ell, isv."; // language-point
+        cout << lang + " is not supported. Make sure you're entering the ISO639-3 code, not ISO639-1. Available options: eng, ell, isv, pol."; // language-point
         return -1;
     }
 
@@ -355,7 +373,7 @@ int main(int argc, char *argv[]) {
 
                 cout << "The layout should now be available in your xkb settings.\n";
             }else{
-                cout << "Readd the layout to your used layouts in xkb settings to apply changes.\n";
+                cout << "Add the layout to your used layouts in xkb settings to apply changes.\n";
             }
         }else{
             cout << "/usr/share/X11/xkb not found.\n";

@@ -1,15 +1,15 @@
 # About
-HEDTU - ἐκτεταμένη διάταξις τοῦ Unicode
+HEDTU - ἡ ἐκτεταμένη διάταξις τοῦ Unicode
 
-The extended unicode keyboard layout
-![Layout preview](https://github.com/Epigeos-com/HEDTU/blob/main/preview.png)
-The legacy standard lacks important symbols, mainly math-related ones
+The extended unicode keyboard layout  
+The standard layout lacks important symbols, particularly math-related ones and has very arbitrary allocation of certain special characters, such as ?!/\ and this layout is a simple solution  
+![Layout preview](https://github.com/Epigeos-com/HEDTU/blob/main/preview.png)  
 
-It also has some pretty weird allocation of certain special characters, such as ?!/\
-
-Aand this layout is a simple solution
+# Use
+`sudo ./HEDTU <lang> <layout> <format>`
+Currently available languages: eng, ell, isv, pol  
+Layouts: QWERTY, Dvorak, JCUKEN  
+Formats: xkb  
 
 # Contact
-Email: [support@epigeos.com](mailto:support@epigeos.com)
-
-Discord: [eYx5GUUKTX](https://discord.gg/eYx5GUUKTX)
+See [https://epigeos.com/](https://epigeos.com/contact)  
