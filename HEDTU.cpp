@@ -52,9 +52,9 @@ int main(int argc, char *argv[]) {
     if (argc > 2) base = strtoupper(argv[2]);
     if (argc > 3) format = strtolower(argv[3]);
     for (int i = 0; i < argc; i++) {
-        if (strtolower(argv[i]) == "--from-each-according-to-their-ability-to-each-according-to-their-needs"){ // easter-egg
+        if (strtolower(argv[i]) == "--from-each-according-to-their-ability-to-each-according-to-their-needs"){
             specialDegree = true;
-        }else if (strtolower(argv[i]) == "--widzisz-mnie"){ // easter-egg
+        }else if (strtolower(argv[i]) == "--widzisz-mnie"){
             specialSpace = true;
         }else if (strtolower(argv[i]) == "--use-left-alt"){
             useLeftAlt = true;
@@ -155,6 +155,9 @@ int main(int argc, char *argv[]) {
         for (int i = 22; i < 29; i++){
             keyListStatic[i + 16] = replace(replace(unicodeKeyTemplateDouble, "{XXXX}", toReplace[i]), "{YYYY}", toReplaceShift[i]);
         }
+        keyListStatic[26] = replace(replace(replace(replace(unicodeKeyTemplateQuadruple, "{XXXX}", "005B"), "{YYYY}", "005D"), "{ZZZZ}", "007B"), "{WWWW}", "007D");
+        keyListDynamic[4] = ", " + replace(replace(unicodeKeyTemplateDouble, "{XXXX}", "2264"), "{YYYY}", "2270");
+        keyListDynamic[5] = ", " + replace(replace(unicodeKeyTemplateDouble, "{XXXX}", "2265"), "{YYYY}", "2271");
     }else if (lang == "pol"){
         languageName = "Polski";
         keyListDynamic[17] = ", " + replace(replace(unicodeKeyTemplateDouble, "{XXXX}", "0119"), "{YYYY}", "0118"); // E
@@ -254,6 +257,7 @@ int main(int argc, char *argv[]) {
         swap(keyListStatic[19], keyListStatic[43]);
         swap(keyListStatic[18], keyListStatic[32]);
         swap(keyListStatic[17], keyListStatic[19]);
+        swap(keyListStatic[38], keyListStatic[28]);
 
         // language-point // Cyrillic languages will have this layout vary a bunch, rn it's implemented for isv, feel free to change the base to something more universal and use ifs to adapt it for other languages
     }else if (base != "QWERTY"){ // base-point // Using swap allows for use in any implemented format, so you should only use swap
@@ -264,7 +268,7 @@ int main(int argc, char *argv[]) {
     string text = "";
     if (format == "xkb"){
         text = "// HEDTU keyboard layout for " + languageName + ".\n"
-        "// https://epigeos.com/ge/HEDTU\n"
+        "// https://github.com/Epigeos-com/HEDTU\n"
         "// Layout and software made by Kirka Walkowiak from epigeos.com\n\n"
 
         "default partial alphanumeric_keys\n"
