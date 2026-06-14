@@ -5,6 +5,8 @@
 #include <fstream>
 #include <cctype>
 #include <filesystem>
+#include <pwd.h>
+#include <vector>
 using namespace std;
 
 // Throughout the code there are comments for base-point, language-point and format-point, these mark places where you'll want to add your code if you add a new base, language or format
@@ -40,27 +42,15 @@ void tryAddLayoutToList(std::string filePath, std::string triggerLine, std::stri
     fileIn.close();
 }
 
-int main(int argc, char *argv[]) {
-    bool specialDegree = false;
-    bool specialSpace = false;
-    bool useLeftAlt = false;
-    string languageName = "English";
-    string lang = "eng";
-    string base = "QWERTY";
-    string format = "xkb";
-    if (argc > 1) lang = strtolower(argv[1]);
-    if (argc > 2) base = strtoupper(argv[2]);
-    if (argc > 3) format = strtolower(argv[3]);
-    for (int i = 0; i < argc; i++) {
-        if (strtolower(argv[i]) == "--from-each-according-to-their-ability-to-each-according-to-their-needs"){
-            specialDegree = true;
-        }else if (strtolower(argv[i]) == "--widzisz-mnie"){
-            specialSpace = true;
-        }else if (strtolower(argv[i]) == "--use-left-alt"){
-            useLeftAlt = true;
-        }
-    }
-
+struct specificLayout {
+    string base;
+    string alphabet;
+    string keyListStatic[48];
+    string keyListDynamic[48];
+    string layoutString;
+    string layoutStringShort;
+};
+specificLayout generateSpecificLayout(vector<string> availableAlphabets, vector<string> availableBases, string lang, string languageName, string format, string base, string alphabet, bool specialDegree, bool specialSpace, bool useLeftAlt){
     // Such splitting allows for easier addition of new bases, languages and formats, as they're separate, so you can e.g. add a format without recreating all the languages and bases
     string keyListStatic[48] = { // Base characters and ones that stay with base characters regardless of language
         "degree", "underscore, bar", "space, space",
@@ -76,24 +66,14 @@ int main(int argc, char *argv[]) {
         "", "", "", "", "", ", U2202", ", U2320, U2321", "", "", "", "",
         "", "", "", "", "", "", ", U2234, U2235", "", "", ""
     };
-    string unicodeKeyTemplate = "U{XXXX}"; // These can be used for language-specific letters, for compatibility, they only use unicode
+    if (specialDegree) keyListStatic[0] += ", U262D";
+    if (specialSpace) keyListStatic[2] += ", U2800";
+    string unicodeKeyTemplate = "U{XXXX}"; // These can be used for language-specific letters, for compatibility, they only use unicode // format-point
     string unicodeKeyTemplateDouble = "U{XXXX}, U{YYYY}";
     string unicodeKeyTemplateTripple = "U{XXXX}, U{YYYY}, U{ZZZZ}";
     string unicodeKeyTemplateQuadruple = "U{XXXX}, U{YYYY}, U{ZZZZ}, U{WWWW}";
-    
-    if (format == "xkb"){
-        if (specialDegree) keyListStatic[0] += ", U262D";
-        if (specialSpace) keyListStatic[2] += ", U2800";
-        // useLeftAlt is set in the final format if
-    }else { // format-point // change keyLists and unicodeKeyTemplates to fit the format, implement support for specialDegree, specialSpace and where supported useLeftAlt
-        cout << format + " is not supported. Available options: xkb."; // format-point
-        return -1;
-    }
 
-    if (lang == "eng"){
-        languageName = "English";
-    }else if (lang == "ell"){
-        languageName = "Ελληνικά";
+    if (lang == "ell"){
         string toReplace[25] = {
             "03C2", "03B5", "03C1", "03C4", "03C5", "03B8", "03B9", "03BF", "03C0",
             "03B1", "03C3", "03B4", "03C6", "03B3", "03B7", "03BE", "03BA", "03BB",
@@ -115,51 +95,46 @@ int main(int argc, char *argv[]) {
             keyListStatic[i + 20] = replace(replace(unicodeKeyTemplateDouble, "{XXXX}", toReplace[i]), "{YYYY}", toReplaceShift[i]);
         }
     }else if (lang == "isv"){
-        cout << "Use isv-l for latin or isv-c for cyrillic.";
-        return -1;
-    }else if (lang == "isv-l"){
-        languageName = "Medžuslovjansky";
-        keyListDynamic[17] = ", " + replace(replace(unicodeKeyTemplateDouble, "{XXXX}", "011B"), "{YYYY}", "011A"); // E
-        keyListDynamic[28] = ", " + replace(replace(unicodeKeyTemplateDouble, "{XXXX}", "0161"), "{YYYY}", "0160"); // S
-        keyListDynamic[38] = ", " + replace(replace(unicodeKeyTemplateDouble, "{XXXX}", "017E"), "{YYYY}", "017D"); // Z
-        keyListDynamic[40] = ", " + replace(replace(unicodeKeyTemplateDouble, "{XXXX}", "010D"), "{YYYY}", "010C"); // C
-        // Etymological alphabet
-        keyListDynamic[15] = ", " + replace(unicodeKeyTemplate, "{XXXX}", "0301"); // Q => ◌́
-        keyListDynamic[16] = ", " + replace(replace(unicodeKeyTemplateDouble, "{XXXX}", "0119"), "{YYYY}", "0118"); // W => Ę
-        keyListDynamic[18] = ", " + replace(replace(unicodeKeyTemplateDouble, "{XXXX}", "0117"), "{YYYY}", "0116"); // R => Ė
-        keyListDynamic[21] = ", " + replace(replace(unicodeKeyTemplateDouble, "{XXXX}", "0173"), "{YYYY}", "0172"); // U
-        keyListDynamic[27] = ", " + replace(replace(unicodeKeyTemplateDouble, "{XXXX}", "00E5"), "{YYYY}", "00C5"); // A
-        keyListDynamic[23] = ", " + replace(replace(unicodeKeyTemplateDouble, "{XXXX}", "022F"), "{YYYY}", "022E"); // O
-        keyListDynamic[29] = ", " + replace(replace(unicodeKeyTemplateDouble, "{XXXX}", "0111"), "{YYYY}", "0110"); // D
-        keyListDynamic[39] = ", " + replace(replace(unicodeKeyTemplateDouble, "{XXXX}", "0107"), "{YYYY}", "0106"); // X => Ć
-
-    }else if (lang == "isv-c"){
-        languageName = "Меджусловјанскы";
-        string toReplace[29] = {
-            "0459", "045A", "0435", "0440", "0442", "0437", "0443", "0438", "043E", "043F", "0448",
-            "0430", "0441", "0434", "0444", "0433", "0445", "0458", "043A", "043B", "0447", "044B",
-            "0436", "0454", "0446", "0432", "0431", "043D", "043C"
-        };
-        string toReplaceShift[29] = {
-            "0409", "040A", "0415", "0420", "0422", "0417", "0423", "0418", "041E", "041F", "0428",
-            "0410", "0421", "0414", "0424", "0413", "0425", "0408", "041A", "041B", "0427", "042B",
-            "0416", "0404", "0426", "0412", "0411", "041D", "041C"
-        };
-        keyListStatic[15] = replace(unicodeKeyTemplate, "{XXXX}", "0301");
-        for (int i = 0; i < 11; i++){
-            keyListStatic[i + 15] = replace(replace(unicodeKeyTemplateDouble, "{XXXX}", toReplace[i]), "{YYYY}", toReplaceShift[i]);
+        if (alphabet == "LATN") {
+            keyListDynamic[17] = ", " + replace(replace(unicodeKeyTemplateDouble, "{XXXX}", "011B"), "{YYYY}", "011A"); // E
+            keyListDynamic[28] = ", " + replace(replace(unicodeKeyTemplateDouble, "{XXXX}", "0161"), "{YYYY}", "0160"); // S
+            keyListDynamic[38] = ", " + replace(replace(unicodeKeyTemplateDouble, "{XXXX}", "017E"), "{YYYY}", "017D"); // Z
+            keyListDynamic[40] = ", " + replace(replace(unicodeKeyTemplateDouble, "{XXXX}", "010D"), "{YYYY}", "010C"); // C
+            // Etymological alphabet
+            keyListDynamic[15] = ", " + replace(unicodeKeyTemplate, "{XXXX}", "0301"); // Q => ◌́
+            keyListDynamic[16] = ", " + replace(replace(unicodeKeyTemplateDouble, "{XXXX}", "0119"), "{YYYY}", "0118"); // W => Ę
+            keyListDynamic[18] = ", " + replace(replace(unicodeKeyTemplateDouble, "{XXXX}", "0117"), "{YYYY}", "0116"); // R => Ė
+            keyListDynamic[21] = ", " + replace(replace(unicodeKeyTemplateDouble, "{XXXX}", "0173"), "{YYYY}", "0172"); // U
+            keyListDynamic[27] = ", " + replace(replace(unicodeKeyTemplateDouble, "{XXXX}", "00E5"), "{YYYY}", "00C5"); // A
+            keyListDynamic[23] = ", " + replace(replace(unicodeKeyTemplateDouble, "{XXXX}", "022F"), "{YYYY}", "022E"); // O
+            keyListDynamic[29] = ", " + replace(replace(unicodeKeyTemplateDouble, "{XXXX}", "0111"), "{YYYY}", "0110"); // D
+            keyListDynamic[39] = ", " + replace(replace(unicodeKeyTemplateDouble, "{XXXX}", "0107"), "{YYYY}", "0106"); // X => Ć
+        }else if (alphabet == "CYRL"){
+            string toReplace[29] = {
+                "0459", "045A", "0435", "0440", "0442", "0437", "0443", "0438", "043E", "043F", "0448",
+                "0430", "0441", "0434", "0444", "0433", "0445", "0458", "043A", "043B", "0447", "044B",
+                "0436", "0454", "0446", "0432", "0431", "043D", "043C"
+            };
+            string toReplaceShift[29] = {
+                "0409", "040A", "0415", "0420", "0422", "0417", "0423", "0418", "041E", "041F", "0428",
+                "0410", "0421", "0414", "0424", "0413", "0425", "0408", "041A", "041B", "0427", "042B",
+                "0416", "0404", "0426", "0412", "0411", "041D", "041C"
+            };
+            keyListStatic[15] = replace(unicodeKeyTemplate, "{XXXX}", "0301");
+            for (int i = 0; i < 11; i++){
+                keyListStatic[i + 15] = replace(replace(unicodeKeyTemplateDouble, "{XXXX}", toReplace[i]), "{YYYY}", toReplaceShift[i]);
+            }
+            for (int i = 11; i < 22; i++){
+                keyListStatic[i + 16] = replace(replace(unicodeKeyTemplateDouble, "{XXXX}", toReplace[i]), "{YYYY}", toReplaceShift[i]);
+            }
+            for (int i = 22; i < 29; i++){
+                keyListStatic[i + 16] = replace(replace(unicodeKeyTemplateDouble, "{XXXX}", toReplace[i]), "{YYYY}", toReplaceShift[i]);
+            }
+            keyListStatic[26] = replace(replace(replace(replace(unicodeKeyTemplateQuadruple, "{XXXX}", "005B"), "{YYYY}", "005D"), "{ZZZZ}", "007B"), "{WWWW}", "007D");
+            keyListDynamic[4] = ", " + replace(replace(unicodeKeyTemplateDouble, "{XXXX}", "2264"), "{YYYY}", "2270");
+            keyListDynamic[5] = ", " + replace(replace(unicodeKeyTemplateDouble, "{XXXX}", "2265"), "{YYYY}", "2271");
         }
-        for (int i = 11; i < 22; i++){
-            keyListStatic[i + 16] = replace(replace(unicodeKeyTemplateDouble, "{XXXX}", toReplace[i]), "{YYYY}", toReplaceShift[i]);
-        }
-        for (int i = 22; i < 29; i++){
-            keyListStatic[i + 16] = replace(replace(unicodeKeyTemplateDouble, "{XXXX}", toReplace[i]), "{YYYY}", toReplaceShift[i]);
-        }
-        keyListStatic[26] = replace(replace(replace(replace(unicodeKeyTemplateQuadruple, "{XXXX}", "005B"), "{YYYY}", "005D"), "{ZZZZ}", "007B"), "{WWWW}", "007D");
-        keyListDynamic[4] = ", " + replace(replace(unicodeKeyTemplateDouble, "{XXXX}", "2264"), "{YYYY}", "2270");
-        keyListDynamic[5] = ", " + replace(replace(unicodeKeyTemplateDouble, "{XXXX}", "2265"), "{YYYY}", "2271");
     }else if (lang == "pol"){
-        languageName = "Polski";
         keyListDynamic[17] = ", " + replace(replace(unicodeKeyTemplateDouble, "{XXXX}", "0119"), "{YYYY}", "0118"); // E
         keyListDynamic[23] = ", " + replace(replace(unicodeKeyTemplateDouble, "{XXXX}", "00F3"), "{YYYY}", "00D3"); // O
         keyListDynamic[27] = ", " + replace(replace(unicodeKeyTemplateDouble, "{XXXX}", "0105"), "{YYYY}", "0104"); // A
@@ -169,10 +144,7 @@ int main(int argc, char *argv[]) {
         keyListDynamic[39] = ", " + replace(replace(unicodeKeyTemplateDouble, "{XXXX}", "017A"), "{YYYY}", "0179"); // X
         keyListDynamic[40] = ", " + replace(replace(unicodeKeyTemplateDouble, "{XXXX}", "0107"), "{YYYY}", "0106"); // C
         keyListDynamic[43] = ", " + replace(replace(unicodeKeyTemplateDouble, "{XXXX}", "0144"), "{YYYY}", "0143"); // N
-    }else{ // language-point // all languages, including Cyrillic ones should use the QWERTY layout by default as other layouts are implemented as based on the QWERTY one, you can simply write it in your preferred format and run the swaps in reverse order
-        cout << lang + " is not supported. Make sure you're entering the ISO639-3 code, not ISO639-1. Available options: eng, ell, isv, pol."; // language-point
-        return -1;
-    }
+    } // language-point // all languages, including Cyrillic ones should use the QWERTY layout by default as other layouts are implemented as based on the QWERTY one, you can simply write it in your preferred format and run the swaps in reverse order
 
     if (base == "DVORAK"){
         swap(keyListStatic[42], keyListStatic[43]);
@@ -260,108 +232,177 @@ int main(int argc, char *argv[]) {
         swap(keyListStatic[38], keyListStatic[28]);
 
         // language-point // Cyrillic languages will have this layout vary a bunch, rn it's implemented for isv, feel free to change the base to something more universal and use ifs to adapt it for other languages
-    }else if (base != "QWERTY"){ // base-point // Using swap allows for use in any implemented format, so you should only use swap
-        cout << base + " is not supported. Available options: QWERTY, Dvorak, JCUKEN"; // base-point
+    } // base-point // Using swap allows for use in any implemented format, so you should only use swap
+
+    string layoutString = languageName + " (HEDTU";
+    if (availableAlphabets.size() > 1) layoutString += ", " + alphabet;
+    if (availableBases.size() > 1) layoutString += ", " + base;
+    layoutString += ")";
+    string layoutStringShort = "";
+    if (availableAlphabets.size() > 1) layoutStringShort += strtolower(alphabet);
+    if (availableBases.size() > 1) layoutStringShort += strtolower(base);
+
+    specificLayout layout;
+    layout.base = base;
+    layout.alphabet = alphabet;
+    std::ranges::copy(keyListStatic, layout.keyListStatic);
+    std::ranges::copy(keyListDynamic, layout.keyListDynamic);
+    layout.layoutString = layoutString;
+    layout.layoutStringShort = layoutStringShort;
+    return layout;
+}
+
+int main(int argc, char *argv[]) {
+    bool specialDegree = false;
+    bool specialSpace = false;
+    bool useLeftAlt = false;
+    if (argc <= 2){
+        cout << "Not enough arguments. Usage: sudo ./HEDTU [language] [format] <options>.";
+        return -1;
+    }
+    string lang = strtolower(argv[1]);
+    string format = strtolower(argv[2]);
+    for (int i = 0; i < argc; i++) {
+        if (strtolower(argv[i]) == "--from-each-according-to-their-ability-to-each-according-to-their-needs"){
+            specialDegree = true;
+        }else if (strtolower(argv[i]) == "--use-hard-space"){
+            specialSpace = true;
+        }else if (strtolower(argv[i]) == "--use-left-alt"){
+            useLeftAlt = true;
+        }
+    }
+
+    string languageName = "English";
+    if (lang == "ell"){
+        languageName = "Ελληνικά";
+    }else if (lang == "isv"){
+        languageName = "Medžuslovjansky";
+    }else if (lang == "pol"){
+        languageName = "Polski";
+    } // language-point
+
+    std::vector<specificLayout> layouts = {};
+    
+    std::vector<string> availableAlphabets = {};
+    if (lang == "isv"){
+        availableAlphabets.push_back("LATN");
+        availableAlphabets.push_back("CYRL");
+    }else if (lang == "eng" || lang == "ell" || lang == "pol"){
+        availableAlphabets.push_back("");
+    }else { // language-point
+        cout << lang + " is not supported. Make sure you're entering the ISO639-3 code, not ISO639-1. Available options: eng, ell, isv, pol."; // language-point
         return -1;
     }
 
+    for (int i = 0; i < availableAlphabets.size(); i++) {
+        const string alphabet = availableAlphabets[i];
+        std::vector<string> availableBases = {};
+        if (lang == "eng"){
+            availableBases.push_back("QWERTY");
+            availableBases.push_back("DVORAK");
+        }else if (lang == "ell"){
+            availableBases.push_back("QWERTY"); // TODO: Is there a Dvorak for scripts other than latin?
+        }else if (lang == "isv"){
+            availableBases.push_back("QWERTY");
+            if (alphabet == "LATN") availableBases.push_back("DVORAK"); // TODO: CYRL Dvorak?
+            if (alphabet == "CYRL") availableBases.push_back("JCUKEN");
+        }else if (lang == "pol"){
+            availableBases.push_back("QWERTY");
+            availableBases.push_back("DVORAK");
+        } // language-point
+
+        for (int j = 0; j < availableBases.size(); j++){
+            const string base = availableBases[j];
+            const specificLayout layout = generateSpecificLayout(availableAlphabets, availableBases, lang, languageName, format, base, alphabet, specialDegree, specialSpace, useLeftAlt);
+            layouts.push_back(layout);
+        }
+    }
+
     string text = "";
-    if (format == "xkb"){
-        text = "// HEDTU keyboard layout for " + languageName + ".\n"
-        "// https://github.com/Epigeos-com/HEDTU\n"
-        "// Layout and software made by Kirka Walkowiak from epigeos.com\n\n"
+    if (format == "xkb" || format == "fcitx5"){
+        text = "// HEDTU keyboard layout for " + lang + " (" + languageName + ").\n"
+            "// https://github.com/Epigeos-com/HEDTU\n"
+            "// Layout and software made by Kirka Walkowiak from epigeos.com\n\n";
 
-        "default partial alphanumeric_keys\n"
-        "xkb_symbols \"basic\" {\n\n"
+        for (int i = 0; i < layouts.size(); i++){
+            const specificLayout layout = layouts[i];
 
-        "   name[Group1] = \""+languageName+" (HEDTU, "+base+")\";\n\n";
+            if (i == 0) text += "default ";
+            text += "partial alphanumeric_keys\n"
+            "xkb_symbols \"" + layout.layoutStringShort + "\" {\n\n"
 
-        if (useLeftAlt) text += "   include \"level3(lalt_switch)\"\n";
-        text += "   include \"level3(ralt_switch)\"\n\n"
+            "   name[Group1] = \"" + layout.layoutString + "\";\n\n";
 
-        "   key <TLDE>  {[ "+keyListStatic[0]+keyListDynamic[0]+" ]};\n"
-        "   key <BKSL>  {[ "+keyListStatic[1]+keyListDynamic[1]+" ]};\n"
-        "   key <SPCE>  {[ "+keyListStatic[2]+keyListDynamic[2]+" ]};\n\n"
+            if (useLeftAlt) text += "   include \"level3(lalt_switch)\"\n";
+            text += "   include \"level3(ralt_switch)\"\n\n"
 
-        ;
-        for (int i = 1; i <= 12; i++){
-            string iString = to_string(i);
-            if (iString.size() == 1) iString = "0" + iString;
-            text += "   key <AE"+iString+">  {[ "+keyListStatic[i + 2]+keyListDynamic[i + 2]+" ]};\n";
+            "   key <TLDE>  {[ "+layout.keyListStatic[0]+layout.keyListDynamic[0]+" ]};\n"
+            "   key <BKSL>  {[ "+layout.keyListStatic[1]+layout.keyListDynamic[1]+" ]};\n"
+            "   key <SPCE>  {[ "+layout.keyListStatic[2]+layout.keyListDynamic[2]+" ]};\n\n"
+
+            ;
+            for (int i = 1; i <= 12; i++){
+                string iString = to_string(i);
+                if (iString.size() == 1) iString = "0" + iString;
+                text += "   key <AE"+iString+">  {[ "+layout.keyListStatic[i + 2]+layout.keyListDynamic[i + 2]+" ]};\n";
+            }
+            text += "\n";
+            for (int i = 1; i <= 12; i++){
+                string iString = to_string(i);
+                if (iString.size() == 1) iString = "0" + iString;
+                text += "   key <AD"+iString+">  {[ "+layout.keyListStatic[i + 14]+layout.keyListDynamic[i + 14]+" ]};\n";
+            }
+            text += "\n";
+            for (int i = 1; i <= 11; i++){
+                string iString = to_string(i);
+                if (iString.size() == 1) iString = "0" + iString;
+                text += "   key <AC"+iString+">  {[ "+layout.keyListStatic[i + 26]+layout.keyListDynamic[i + 26]+" ]};\n";
+            }
+            text += "\n";
+            for (int i = 1; i <= 10; i++){
+                string iString = to_string(i);
+                if (iString.size() == 1) iString = "0" + iString;
+                text += "   key <AB"+iString+">  {[ "+layout.keyListStatic[i + 37]+layout.keyListDynamic[i + 37]+" ]};\n";
+            }
+            text += "\n};\n\n\n";
         }
-        text += "\n";
-        for (int i = 1; i <= 12; i++){
-            string iString = to_string(i);
-            if (iString.size() == 1) iString = "0" + iString;
-            text += "   key <AD"+iString+">  {[ "+keyListStatic[i + 14]+keyListDynamic[i + 14]+" ]};\n";
-        }
-        text += "\n";
-        for (int i = 1; i <= 11; i++){
-            string iString = to_string(i);
-            if (iString.size() == 1) iString = "0" + iString;
-            text += "   key <AC"+iString+">  {[ "+keyListStatic[i + 26]+keyListDynamic[i + 26]+" ]};\n";
-        }
-        text += "\n";
-        for (int i = 1; i <= 10; i++){
-            string iString = to_string(i);
-            if (iString.size() == 1) iString = "0" + iString;
-            text += "   key <AB"+iString+">  {[ "+keyListStatic[i + 37]+keyListDynamic[i + 37]+" ]};\n";
-        }
-        text += "\n};";
 
         bool addToList = true;
         if (std::filesystem::exists("/usr/share/X11/xkb")){
             if (std::filesystem::exists("/usr/share/X11/xkb/symbols/" + lang)){
-                cout << "/usr/share/X11/xkb/symbols/" + lang + " already exists.\n";
-                std::ifstream prevIn ("/usr/share/X11/xkb/symbols/" + lang);
-                if (!prevIn.is_open()){
-                    cout << "Failed to open ifstream at /usr/share/X11/xkb/symbols/" + lang + ". Make sure you're running HEDTU with sudo.\n";
-                    return -1;
-                }
-                if (std::filesystem::exists(lang + "_old")){
-                    cout << "Failed copying previous version of the /symbols/ file, " + lang + "_old already exists.\n";
-                    return -1;
-                }
-                std::ofstream prevOut (lang + "_old");
-                if (!prevOut.is_open()){
-                    cout << "Failed to open ofstream for the previous /symbols/ file in the current directory.\n";
-                    return -1;
-                }
-                prevOut << prevIn.rdbuf();
-                prevIn.close();
-                cout << "A copy of the previous version was saved in the current directory. Replacing.\n";
+                cout << "/usr/share/X11/xkb/symbols/" + lang + " already exists. Replacing without changes to /rules/ files.\n";
                 addToList = false;
             }
             std::ofstream file ("/usr/share/X11/xkb/symbols/" + lang);
             if (!file.is_open()){
                 cout << "Failed to open ofstream at /usr/share/X11/xkb/symbols/" + lang + ". Make sure you're running HEDTU with sudo.\n";
-                if (std::filesystem::exists(lang)){
-                    cout << "Failed saving in the current directory for manual installation, " + lang + " already exists.\n";
-                    return -1;
-                }
-                file.open(lang);
-                if (!file.is_open()){
-                    cout << "Failed to open ofstream for the /symbols/ file in the current directory, most likely due to permission issues.\n";
-                    return -1;
-                }
-                cout << "The /symbols/ file will be saved to the current directory and can be added manually.\n";
-                addToList = false;
+                return -1;
             }
             file << text << std::endl;
             file.close();
+
             if (addToList){
                 cout << "Adding layout to rules.\n";
                 string triggerLine = "! layout";
-                string layoutNode = "  "+lang+"    "+languageName+" (HEDTU, "+base+")";
+                string layoutNode = "  "+lang+"    "+languageName+" (HEDTU)";
                 tryAddLayoutToList("/usr/share/X11/xkb/rules/base.lst", triggerLine, layoutNode);
                 tryAddLayoutToList("/usr/share/X11/xkb/rules/evdev.lst", triggerLine, layoutNode);
+
+                for (int i = 0; i < layouts.size(); i++){
+                    const specificLayout layout = layouts[i];
+
+                    string triggerLine = "! variant";
+                    string layoutNode = "  "+layout.layoutStringShort+"    "+lang+": "+layout.layoutString;
+                    tryAddLayoutToList("/usr/share/X11/xkb/rules/base.lst", triggerLine, layoutNode);
+                    tryAddLayoutToList("/usr/share/X11/xkb/rules/evdev.lst", triggerLine, layoutNode);
+                }
 
                 triggerLine = "  <layoutList>";
                 layoutNode = "    <layout>\n"
 "      <configItem>\n"
 "        <name>"+lang+"</name>\n"
 "        <shortDescription>"+lang+"</shortDescription>\n"
-"        <description>"+languageName+" (HEDTU, "+base+")"+"</description>\n"
+"        <description>"+languageName+" (HEDTU)"+"</description>\n"
 "        <countryList>\n"
 "          <iso3166Id>US</iso3166Id>\n"
 "        </countryList>\n"
@@ -369,22 +410,30 @@ int main(int argc, char *argv[]) {
 "          <iso639Id>"+lang+"</iso639Id>\n"
 "        </languageList>\n"
 "      </configItem>\n"
+"      <variantList>\n";
+                for (int i = 0; i < layouts.size(); i++){
+                    const specificLayout layout = layouts[i];
+
+                    layoutNode +=
+"        <variant>\n"
+"          <configItem>\n"
+"            <name>"+layout.layoutStringShort+"</name>\n"
+"            <description>"+layout.layoutString+"</description>\n"
+"            <countryList>\n"
+"              <iso3166Id>US</iso3166Id>\n"
+"            </countryList>\n"
+"          </configItem>\n"
+"        </variant>\n";
+                }
+                layoutNode += "      </variantList>\n"
 "    </layout>";
                 tryAddLayoutToList("/usr/share/X11/xkb/rules/base.xml", triggerLine, layoutNode);
                 tryAddLayoutToList("/usr/share/X11/xkb/rules/evdev.xml", triggerLine, layoutNode);
                 tryAddLayoutToList("/usr/share/X11/xkb/rules/base.extras.xml", triggerLine, layoutNode);
                 tryAddLayoutToList("/usr/share/X11/xkb/rules/evdev.extras.xml", triggerLine, layoutNode);
-
-                cout << "The layout should now be available in your xkb settings.\n";
-            }else{
-                cout << "Add the layout to your used layouts in xkb settings to apply changes.\n";
             }
         }else{
             cout << "/usr/share/X11/xkb not found.\n";
-            if (std::filesystem::exists(lang)){
-                cout << "Failed saving in the current directory for manual installation, " + lang + " already exists.\n";
-                return -1;
-            }
             std::ofstream file (lang);
             if (!file.is_open()){
                 cout << "Failed to open ofstream for the /symbols/ file in the current directory, most likely due to permission issues.\n";
@@ -394,6 +443,46 @@ int main(int argc, char *argv[]) {
             file.close();
             cout << "The /symbols/ file was saved to the current directory and can be added manually.\n";
         }
+
+        if (format == "fcitx5"){
+            const char* sudoUser = std::getenv("SUDO_USER");
+            struct passwd* pw = getpwnam(sudoUser);
+            string home = std::getenv("HOME");
+            if (pw) home = pw->pw_dir;
+
+            if (std::filesystem::exists(home + "/.local/share/fcitx5")){
+                std::filesystem::create_directory(home + "/.local/share/fcitx5/inputmethod");
+
+                for (int i = 0; i < layouts.size(); i++){
+                    const specificLayout layout = layouts[i];
+
+                    const string path = home + "/.local/share/fcitx5/inputmethod/keyboard-" + lang + "-" + layout.layoutStringShort + ".conf";
+                    if (!std::filesystem::exists(path)){
+                        std::ofstream file (path);
+                        if (!file.is_open()){
+                            cout << "Failed to open ofstream for " + path + ", most likely due to permission issues.\n";
+                            return -1;
+                        }
+                        file << "[InputMethod]"
+"\nName=" + layout.layoutString +
+"\nIcon=input-keyboard"
+"\nLangCode=" + lang + "_" + layout.layoutStringShort + 
+"\nAddon=keyboard"
+"\nConfigurable=True"
+"\nLabel=" + lang << std::endl;
+                        file.close();
+                        cout << "Successfully added " + path + ".\n";
+                        
+                    }
+                }
+            }else{
+                cout << home + "/.local/share/fcitx5 does not exist.";
+                return -1;
+            }
+        }
+    } else {
+        cout << format + " is not supported. Available options: xkb, fcitx5."; // format-point
+        return -1;
     } // format-point
 
     cout << "Success." << std::endl;

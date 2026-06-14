@@ -6,10 +6,10 @@ The standard layout lacks important symbols, particularly math-related ones and 
 ![Layout preview](https://github.com/Epigeos-com/HEDTU/blob/main/preview.png)  
 
 # Usage
-`sudo ./HEDTU <lang> <layout> <format>`  
+`sudo ./HEDTU [language] [format] <options>`  
 Currently available languages: eng, ell, isv, pol  
 Layouts: QWERTY, Dvorak, JCUKEN  
-Formats: xkb  
+Formats: xkb, fcitx5  
 
 # Contact
 See [https://epigeos.com/](https://epigeos.com/contact)  
